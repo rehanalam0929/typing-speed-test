@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TypeRush – Typing Speed Test</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f6f7fb;--card:#fff;--text:#1d2433;--muted:#8a93a6;--accent:#5b5bf0;--ok:#1a9d5c;--bad:#e5484d;--border:#e4e7ef;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1220;--card:#181c2e;--text:#e8ebf5;--muted:#6f7893;--accent:#8b8bff;--ok:#3ddc97;--bad:#ff6b6b;--border:#2a3050}}
+:root[data-theme="dark"]{--bg:#0f1220;--card:#181c2e;--text:#e8ebf5;--muted:#6f7893;--accent:#8b8bff;--ok:#3ddc97;--bad:#ff6b6b;--border:#2a3050}
+*{box-sizing:border-box;margin:0}
+html,body{background:var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif;min-height:100%}
+body{padding:20px 5%}
+header{display:flex;justify-content:space-between;align-items:center;max-width:900px;margin:0 auto 28px}
+.logo{font-weight:700;font-size:1.4rem}.logo span{color:var(--accent)}
+button{font-family:inherit;cursor:pointer;border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:10px;padding:8px 14px;font-weight:600;transition:.2s}
+button:hover{border-color:var(--accent);color:var(--accent)}
+button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+main{max-width:900px;margin:0 auto}
+.bar{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;margin-bottom:18px}
+.group{display:flex;gap:6px;align-items:center;background:var(--card);padding:6px;border-radius:12px;border:1px solid var(--border)}
+.group small{color:var(--muted);padding:0 6px}
+.group button{border:none;padding:6px 12px}
+.live{display:flex;gap:28px;font-size:1.1rem;margin-bottom:12px;color:var(--muted)}
+.live b{font-size:2rem;color:var(--accent);margin-right:4px}
+.progress{height:5px;background:var(--border);border-radius:5px;overflow:hidden;margin-bottom:14px}
+.progress div{height:100%;width:0;background:var(--accent);transition:width .1s linear}
+.box{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;position:relative;cursor:text}
+#words{font-family:'JetBrains Mono',monospace;font-size:1.5rem;line-height:2.4rem;height:7.2rem;overflow:hidden;position:relative;user-select:none;word-break:normal;color:var(--muted)}
+#words span{position:relative}
+#words .ok{color:var(--text)}#words .bad{color:var(--bad);background:color-mix(in srgb,var(--bad) 18%,transparent);border-radius:3px}
+#words .cur::before{content:"";position:absolute;left:-1px;top:3px;bottom:3px;width:2px;background:var(--accent);animation:blink 1s infinite}
+@keyframes blink{50%{opacity:0}}
+.box.blur #words{filter:blur(4px)}
+.hint{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:600;color:var(--text);pointer-events:none}
+.box:not(.blur) .hint{display:none}
+#input{position:absolute;opacity:0;pointer-events:none}
+.foot{text-align:center;color:var(--muted);font-size:.85rem;margin-top:16px}
+kbd{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:2px 7px;font-family:'JetBrains Mono',monospace}
+#result{display:none;margin-top:20px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:26px;animation:pop .35s}
+@keyframes pop{from{transform:translateY(14px);opacity:0}}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:14px;margin-bottom:18px}
+.stat{background:var(--bg);border-radius:12px;padding:14px;text-align:center}
+.stat b{display:block;font-size:2rem;color:var(--accent)}.stat span{color:var(--muted);font-size:.8rem}
+.best{text-align:center;font-weight:600;margin-bottom:14px}
+canvas{width:100%;height:170px;display:block}
+.acts{display:flex;gap:10px;justify-content:center;margin-top:18px}
+.grade{font-size:1.1rem;text-align:center;margin-bottom:14px}
+.hist{margin-top:18px;text-align:center}.chips{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:10px}.chips span{background:var(--bg);border-radius:8px;padding:4px 10px;font-weight:600;font-size:.85rem}.hist button{font-size:.8rem;padding:4px 10px;color:var(--muted)}
+@media(max-width:560px){#words{font-size:1.15rem;line-height:2rem;height:6rem}.live{gap:16px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">Type<span>Rush</span> ⌨️</div>
+  <button id="themeBtn">🌙 Theme</button>
+</header>
+<main>
+  <div class="bar">
+    <div class="group"><small>Time</small><button data-t="15">15s</button><button data-t="30" class="on">30s</button><button data-t="60">60s</button></div>
+    <div class="group"><small>Mode</small><button data-m="easy" class="on">Easy</button><button data-m="punct">Punctuation</button><button data-m="hard">Hard</button><button data-m="quote">Quotes</button></div>
+  </div>
+  <div class="live"><div><b id="lWpm">0</b>WPM</div><div><b id="lAcc">100</b>%</div><div><b id="lTime">30</b>s</div></div>
+  <div class="progress"><div id="bar"></div></div>
+  <div class="box blur" id="box">
+    <div id="words"></div>
+    <div class="hint">Click here or press any key to focus</div>
+    <textarea id="input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-gramm="false"></textarea>
+  </div>
+  <p class="foot"><kbd>Tab</kbd> restart &nbsp; <kbd>Esc</kbd> new words &nbsp; The test starts when you type your first letter</p>
+  <section id="result">
+    <div class="grade" id="grade"></div>
+    <div class="stats">
+      <div class="stat"><b id="rWpm">0</b><span>WPM</span></div>
+      <div class="stat"><b id="rRaw">0</b><span>Raw WPM</span></div>
+      <div class="stat"><b id="rAcc">0</b><span>Accuracy %</span></div>
+      <div class="stat"><b id="rChars">0</b><span>Correct / wrong</span></div>
+    </div>
+    <div class="best" id="best"></div>
+    <canvas id="chart"></canvas>
+    <div class="hist" id="hist"></div>
+    <div class="acts"><button class="on" id="again">Try again ↻</button><button id="shareBtn">Copy result 📋</button></div>
+  </section>
+</main>
+<script>
+const easy="the be to of and a in that have it for not on with he as you do at this but his by from they we say her she or an will my one all would there their what so up out if about who get which go me when make can like time no just him know take people into year your good some could them see other than then now look only come its over think also back after use two how our work first well way even new want because any these give day most us".split(" ");
+const hard="rhythm necessary beautiful government environment knowledge experience development particular opportunity responsibility communication important different technology information understand situation education relationship community university conversation temperature organization performance restaurant development acknowledge accommodate conscience mischievous pronunciation questionnaire entrepreneur surveillance".split(" ");
+const quotes=["Practice makes progress, so keep your eyes on the words and let your fingers find their own rhythm.","A good habit is built one small step at a time, and every minute of typing makes the next minute easier.","The quick brown fox jumps over the lazy dog while the sun slowly sets behind the old stone bridge.","Slow is smooth and smooth is fast, so breathe, relax your shoulders and trust the keys under your hands.","Every expert was once a beginner who refused to quit when the words did not come out right.","Great ideas travel faster when you can type them as quickly as you can think them.","Read a little ahead, stay calm after a mistake and keep moving forward without looking at the keyboard.","Coffee cools, deadlines come closer, and the person who types with confidence always finishes first."];
+const $=id=>document.getElementById(id);
+const wordsEl=$("words"),input=$("input"),box=$("box");
+let dur=30,mode="easy",text="",chars=[],started=false,done=false,t0=0,timer=null,keys=0,good=0,samples=[],lastSec=0;
+
+function makeText(){
+  if(mode==="quote"){let q=[];while(q.join(" ").length<900)q.push(quotes[Math.floor(Math.random()*quotes.length)]);return q.join(" ")}
+  const pool=mode==="hard"?hard.concat(easy.slice(0,40)):easy;let out=[];
+  for(let i=0;i<220;i++){
+    let w=pool[Math.floor(Math.random()*pool.length)];
+    if(mode==="punct"){
+      if(Math.random()<.15)w=w[0].toUpperCase()+w.slice(1);
+      if(Math.random()<.18)w+=[",",".","!","?",";"][Math.floor(Math.random()*5)];
+    }
+    out.push(w);
+  }
+  return out.join(" ");
+}
+function reset(newWords){
+  clearInterval(timer);started=done=false;keys=good=0;samples=[];lastSec=0;
+  if(newWords||!text)text=makeText();
+  input.value="";wordsEl.innerHTML="";wordsEl.scrollTop=0;
+  chars=[...text].map(c=>{const s=document.createElement("span");s.textContent=c;wordsEl.appendChild(s);return s});
+  chars[0].className="cur";
+  $("lWpm").textContent=0;$("lAcc").textContent=100;$("lTime").textContent=dur;$("bar").style.width="0";
+  $("result").style.display="none";
+  input.focus();
+}
+function stats(){
+  const v=input.value;let ok=0;
+  for(let i=0;i<v.length;i++)if(v[i]===text[i])ok++;
+  const min=Math.max((performance.now()-t0)/60000,1/60);
+  return{wpm:Math.round(ok/5/min),raw:Math.round(v.length/5/min),acc:keys?Math.round(good/keys*100):100,ok,bad:v.length-ok};
+}
+function tick(){
+  const el=(performance.now()-t0)/1000,left=Math.max(dur-el,0);
+  $("lTime").textContent=Math.ceil(left);$("bar").style.width=Math.min(el/dur*100,100)+"%";
+  const s=stats();$("lWpm").textContent=el<2?"…":s.wpm;$("lAcc").textContent=s.acc;
+  if(Math.floor(el)>lastSec){lastSec=Math.floor(el);samples.push(s.wpm)}
+  if(left<=0)finish();
+}
+input.addEventListener("input",e=>{
+  if(done)return;
+  if(!started){started=true;t0=performance.now();timer=setInterval(tick,100)}
+  if(e.inputType==="insertText"&&e.data){keys++;if(e.data===text[input.value.length-1])good++}
+  const v=input.value;
+  chars.forEach((s,i)=>{s.className=i<v.length?(v[i]===text[i]?"ok":"bad"):""});
+  if(v.length<chars.length)chars[v.length].classList.add("cur");
+  const c=chars[Math.min(v.length,chars.length-1)],lh=parseFloat(getComputedStyle(wordsEl).lineHeight);
+  wordsEl.scrollTop=Math.max(c.offsetTop-lh,0);
+  if(v.length>=chars.length)finish();
+});
+function finish(){
+  if(done)return;done=true;clearInterval(timer);
+  const s=stats();samples.push(s.wpm);
+  $("rWpm").textContent=s.wpm;$("rRaw").textContent=s.raw;$("rAcc").textContent=s.acc;
+  $("rChars").textContent=s.ok+" / "+s.bad;
+  $("grade").textContent=s.wpm>=80?"🚀 Lightning fast!":s.wpm>=50?"🔥 Great typing speed!":s.wpm>=30?"👍 Solid – keep practising!":"🌱 Good start – you’ll speed up quickly!";
+  const key="typerush-best-"+dur+"-"+mode;let prev=0;
+  let h=[];try{prev=+localStorage.getItem(key)||0;if(s.wpm>prev)localStorage.setItem(key,s.wpm);h=JSON.parse(localStorage.getItem("typerush-history")||"[]");h.push({w:s.wpm});h=h.slice(-10);localStorage.setItem("typerush-history",JSON.stringify(h))}catch(e){h=h.length?h:[{w:s.wpm}]}
+  renderHist(h);
+  $("best").textContent=s.wpm>prev?(prev?"🏆 New personal best! (was "+prev+" WPM)":"🏆 First score saved!"):"Personal best for this setup: "+prev+" WPM";
+  $("result").style.display="block";draw();
+  $("result").scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+function renderHist(h){
+  const avg=Math.round(h.reduce((a,x)=>a+x.w,0)/h.length);
+  $("hist").innerHTML="<div class='best'>Last "+h.length+" tests · average "+avg+" WPM</div><div class='chips'>"+h.map(x=>"<span>"+x.w+"</span>").join("")+"</div><button id='clr'>Clear history</button>";
+  $("clr").onclick=()=>{try{localStorage.removeItem("typerush-history")}catch(e){}$("hist").innerHTML=""};
+}
+function draw(){
+  const cv=$("chart"),r=devicePixelRatio||1,w=cv.clientWidth,h=cv.clientHeight;
+  cv.width=w*r;cv.height=h*r;const g=cv.getContext("2d");g.scale(r,r);
+  const st=getComputedStyle(document.documentElement),acc=st.getPropertyValue("--accent"),mut=st.getPropertyValue("--muted"),brd=st.getPropertyValue("--border");
+  const max=Math.max(...samples,10)*1.15,p=26,n=samples.length;
+  g.strokeStyle=brd;g.fillStyle=mut;g.font="11px Inter";
+  for(let i=0;i<=4;i++){const y=p+(h-2*p)*i/4;g.beginPath();g.moveTo(p+14,y);g.lineTo(w-p,y);g.stroke();g.fillText(Math.round(max*(1-i/4)),0,y+4)}
+  const X=i=>p+14+(w-2*p-14)*(n>1?i/(n-1):0),Y=v=>p+(h-2*p)*(1-v/max);
+  g.strokeStyle=acc;g.lineWidth=3;g.lineJoin="round";g.beginPath();
+  samples.forEach((v,i)=>i?g.lineTo(X(i),Y(v)):g.moveTo(X(i),Y(v)));g.stroke();
+  g.fillStyle=acc;samples.forEach((v,i)=>{g.beginPath();g.arc(X(i),Y(v),3.5,0,7);g.fill()});
+  g.fillStyle=mut;g.fillText("WPM over time (seconds)",p+14,h-6);
+}
+document.querySelectorAll("[data-t]").forEach(b=>b.onclick=()=>{dur=+b.dataset.t;sel("t",b);reset(false)});
+document.querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>{mode=b.dataset.m;sel("m",b);reset(true)});
+function sel(k,b){document.querySelectorAll("[data-"+k+"]").forEach(x=>x.classList.remove("on"));b.classList.add("on")}
+$("again").onclick=()=>reset(false);
+$("shareBtn").onclick=()=>{const t="I typed "+$("rWpm").textContent+" WPM with "+$("rAcc").textContent+"% accuracy on TypeRush! ⌨️";
+  (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>$("shareBtn").textContent="Copied ✅").catch(()=>$("shareBtn").textContent=t)};
+$("themeBtn").onclick=()=>{const d=document.documentElement,dark=getComputedStyle(d).getPropertyValue("--bg").trim()==="#0f1220";d.setAttribute("data-theme",dark?"light":"dark");if(done)draw()};
+box.addEventListener("click",()=>input.focus());
+["paste","drop","cut"].forEach(ev=>input.addEventListener(ev,e=>e.preventDefault()));
+input.addEventListener("focus",()=>box.classList.remove("blur"));
+input.addEventListener("blur",()=>{if(!done)box.classList.add("blur")});
+document.addEventListener("keydown",e=>{
+  if(e.key==="Tab"){e.preventDefault();reset(false)}
+  else if(e.key==="Escape"){reset(true)}
+  else if(document.activeElement!==input&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&e.key.length===1&&!done)input.focus();
+});
+reset(true);
+</script>
+</body>
+</html>
